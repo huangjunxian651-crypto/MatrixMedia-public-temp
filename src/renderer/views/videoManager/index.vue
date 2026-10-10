@@ -8,31 +8,42 @@
     <div class="toolbar section-card el-card is-never-shadow">
       <div class="toolbar-inner">
         <div class="toolbar-left">
-          <span class="toolbar-label">发布操作</span>
-          <el-button type="primary" @click="selectVideoFile"
-            >选择视频发布</el-button
-          >
-          <el-button type="primary" plain @click="openDirectoryPublish"
-            >目录发布</el-button
-          >
-          <el-button type="success" @click="openArticlePublish"
-            >发布文章</el-button
-          >
+          <el-button
+            type="primary"
+            icon="el-icon-video-camera"
+            @click="selectVideoFile"
+          >选择视频发布</el-button>
+          <el-button
+            type="primary"
+            plain
+            icon="el-icon-folder-opened"
+            @click="openDirectoryPublish"
+          >目录发布</el-button>
+          <el-button
+            type="success"
+            plain
+            icon="el-icon-document"
+            @click="openArticlePublish"
+          >发布文章</el-button>
         </div>
         <div class="toolbar-right">
-          <el-button plain :loading="exportingHistory" @click="exportHistory"
-            >导出当前记录</el-button
-          >
-          <span class="toolbar-label">帮助</span>
-          <el-button type="warning" plain @click="openFeedback"
-            >问题反馈</el-button
-          >
-          <el-button type="warning" plain @click="openQQGroup"
-            >加入作者QQ群</el-button
-          >
-          <el-button type="danger" plain @click="openGitHubStar"
-            >⭐ GitHub Star</el-button
-          >
+          <el-button
+            icon="el-icon-download"
+            size="small"
+            plain
+            :loading="exportingHistory"
+            @click="exportHistory"
+          >导出记录</el-button>
+          <el-dropdown trigger="click" @command="handleHelpCommand">
+            <el-button size="small" plain icon="el-icon-more">
+              更多 <i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="feedback" icon="el-icon-chat-dot-round">问题反馈</el-dropdown-item>
+              <el-dropdown-item command="qq" icon="el-icon-user">交流QQ群</el-dropdown-item>
+              <el-dropdown-item command="star" icon="el-icon-star-off">GitHub Star</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
         </div>
       </div>
     </div>
@@ -965,6 +976,12 @@ export default {
           this.$delete(this.dataList, dateKey);
         }
       });
+    },
+
+    handleHelpCommand(command) {
+      if (command === "feedback") this.openFeedback();
+      else if (command === "qq") this.openQQGroup();
+      else if (command === "star") this.openGitHubStar();
     },
   },
 };

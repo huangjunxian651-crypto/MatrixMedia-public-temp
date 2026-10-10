@@ -5,28 +5,49 @@
       :close-on-click-modal="false"
       :visible.sync="metaVisible"
       :close-on-press-escape="false"
-      width="800px"
+      width="760px"
+      custom-class="publish-meta-dialog"
       @close="handleMetaClose"
     >
-      <p class="file-line"><strong>已选文件：</strong>{{ displayFileName }}</p>
+      <div class="selected-file-badge">
+        <i class="el-icon-video-camera file-icon"></i>
+        <span class="file-label">已选视频：</span>
+        <span class="file-name" :title="localFilePath">{{ displayFileName }}</span>
+      </div>
       <el-form label-width="88px" class="meta-form">
-        <el-form-item label="名称">
+        <el-form-item label="视频标题" required>
           <el-input
-            v-model="form.title"
-            placeholder="默认与视频文件名一致，可改"
+            v-model="form.bt1"
+            placeholder="请输入视频标题（各平台发布的主标题）"
+            @input="onTitleInput"
           />
         </el-form-item>
-        <el-form-item label="视频标题">
-          <el-input v-model="form.bt1" placeholder="发布时使用的标题" />
+        <el-form-item label="封面图片">
+          <div class="cover-uploader-row">
+            <el-button size="small" icon="el-icon-picture-outline" @click="selectCoverImage">
+              {{ coverPath ? '更换封面' : '选择封面图片' }}
+            </el-button>
+            <el-tag
+              v-if="coverPath"
+              closable
+              type="success"
+              size="small"
+              class="cover-tag"
+              @close="coverPath = ''"
+            >
+              <i class="el-icon-picture"></i> {{ coverFileName }}
+            </el-tag>
+          </div>
+          <span class="field-sub-tip">选填，将自动上传并裁剪为 4:3 比例（支持抖音、快手、B站等）</span>
         </el-form-item>
         <el-form-item label="视频简介">
           <el-input
             v-model="form.description"
             type="textarea"
-            :rows="4"
+            :rows="3"
             maxlength="2000"
             show-word-limit
-            placeholder="选填，将作为各平台正文或简介"
+            placeholder="选填，将作为各平台视频正文或简介"
           />
         </el-form-item>
         <el-form-item label="视频标签">
@@ -46,79 +67,63 @@
             @keydown.native.capture="onBqKeydown"
           ></el-select>
         </el-form-item>
-        <el-form-item label="封面图片">
-          <el-button size="mini" @click="selectCoverImage">选择封面图片</el-button>
-          <span v-if="coverPath" class="file-name" style="margin-left: 8px;">{{ coverFileName }}</span>
-          <el-button
-            v-if="coverPath"
-            size="mini"
-            type="text"
-            style="margin-left: 8px; color: #f56c6c;"
-            @click="coverPath = ''"
-          >清除</el-button>
-          <p class="bt2-tip">
-            选填。支持<strong>哔哩哔哩</strong>、<strong>快手</strong>、<strong>抖音</strong>等平台上传自定义视频封面图片（.jpg / .png / .webp）。
-          </p>
-        </el-form-item>
-        <el-form-item label="B站分区">
-          <el-select v-model="form.blblCategory" placeholder="选择分区" style="width: 200px">
-            <el-option label="音乐" value="音乐" />
-            <el-option label="影视" value="影视" />
-            <el-option label="娱乐" value="娱乐" />
-            <el-option label="舞蹈" value="舞蹈" />
-            <el-option label="动画" value="动画" />
-            <el-option label="绘画" value="绘画" />
-            <el-option label="游戏" value="游戏" />
-            <el-option label="知识" value="知识" />
-            <el-option label="科技" value="科技" />
-            <el-option label="生活" value="生活" />
-            <el-option label="美食" value="美食" />
-            <el-option label="动物圈" value="动物圈" />
-            <el-option label="汽车" value="汽车" />
-            <el-option label="运动" value="运动" />
-            <el-option label="时尚" value="时尚" />
-          </el-select>
-          <p class="bt2-tip">
-            仅哔哩哔哩生效，默认<strong>音乐</strong>分区，可切换影视、娱乐等。
-          </p>
-        </el-form-item>
-        <el-form-item label="视频号短标题">
-          <el-input
-            ref="bt2Input"
-            v-model="form.shortTitle"
-            placeholder="仅视频号使用，选填，建议 6～16 字"
-            @input="onBt2Input"
-            @keydown.native.capture="onBt2Keydown"
-          />
-          <p class="bt2-tip">
-            <strong>微信视频号</strong
-            >会将本项用于「概括视频主要内容」，填写时长度需为 6～16
-            字，且不能包含特殊标点符号。
-          </p>
-        </el-form-item>
-        <el-form-item label="定时发布">
-          <el-switch
-            v-model="scheduledPublish"
-            active-text="定时"
-            inactive-text="立即"
-          />
-        </el-form-item>
-        <el-form-item v-if="scheduledPublish" label="发布时间">
-          <el-date-picker
-            v-model="publishAt"
-            type="datetime"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            placeholder="选择年月日时分秒"
-            style="width: 260px"
-          />
-          <p class="bt2-tip">
-            定时任务会立即进入发布历史，到点后自动发布；如果程序关闭错过时间，会显示任务过期。
-          </p>
-        </el-form-item>
+
+        <div class="advanced-divider" @click="showAdvancedOptions = !showAdvancedOptions">
+          <span class="advanced-title">
+            <i :class="showAdvancedOptions ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"></i>
+            平台高级选项（B站分区、视频号短标题、定时发布）
+          </span>
+        </div>
+        <div v-show="showAdvancedOptions" class="advanced-panel">
+          <el-form-item label="B站分区">
+            <el-select v-model="form.blblCategory" placeholder="选择分区" style="width: 200px">
+              <el-option label="音乐" value="音乐" />
+              <el-option label="影视" value="影视" />
+              <el-option label="娱乐" value="娱乐" />
+              <el-option label="舞蹈" value="舞蹈" />
+              <el-option label="动画" value="动画" />
+              <el-option label="绘画" value="绘画" />
+              <el-option label="游戏" value="游戏" />
+              <el-option label="知识" value="知识" />
+              <el-option label="科技" value="科技" />
+              <el-option label="生活" value="生活" />
+              <el-option label="美食" value="美食" />
+              <el-option label="动物圈" value="动物圈" />
+              <el-option label="汽车" value="汽车" />
+              <el-option label="运动" value="运动" />
+              <el-option label="时尚" value="时尚" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="短标题">
+            <el-input
+              ref="bt2Input"
+              v-model="form.shortTitle"
+              placeholder="仅微信视频号使用，选填，建议 6～16 字"
+              @input="onBt2Input"
+              @keydown.native.capture="onBt2Keydown"
+            />
+          </el-form-item>
+          <el-form-item label="定时发布">
+            <el-switch
+              v-model="scheduledPublish"
+              active-text="定时"
+              inactive-text="立即"
+            />
+          </el-form-item>
+          <el-form-item v-if="scheduledPublish" label="发布时间">
+            <el-date-picker
+              v-model="publishAt"
+              type="datetime"
+              value-format="yyyy-MM-dd HH:mm:ss"
+              placeholder="选择发布时间"
+              style="width: 240px"
+            />
+          </el-form-item>
+        </div>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="metaVisible = false">取消</el-button>
-        <el-button type="primary" @click="onMetaNext">下一步</el-button>
+        <el-button type="primary" @click="onMetaNext">下一步：选择账号</el-button>
       </div>
     </el-dialog>
 
@@ -686,6 +691,7 @@ export default {
       checkAllPlatforms: false,
       checkAllIndeterminate: false,
       batchCreativeStatement: CREATIVE_STATEMENT_DEFAULT,
+      showAdvancedOptions: false,
       form: {
         title: "",
         bt1: "",
@@ -877,11 +883,12 @@ export default {
       this.resetPlatformVideoLinks();
       this.form = {
         title: defaultTitle,
-        bt1: "",
+        bt1: defaultTitle,
         description: "",
         shortTitle: "",
         blblCategory: "音乐",
       };
+      this.showAdvancedOptions = false;
       this.thisShow = false;
       this.closeWindow = true;
       this.scheduledPublish = false;
@@ -889,6 +896,9 @@ export default {
       this.republishContext = null;
       this.republishTextOtherName = "";
       this.metaVisible = true;
+    },
+    onTitleInput(val) {
+      this.form.title = val;
     },
     openRepublish(payload = {}) {
       const filePath = payload.filePath || "";
@@ -2507,6 +2517,77 @@ export default {
 :deep(.el-tree-node.is-expanded > .el-tree-node__children) {
   display: flex;
   flex-wrap: wrap;
+}
+
+.selected-file-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f4f6f8;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  color: #303133;
+}
+.file-icon {
+  color: #409eff;
+  font-size: 16px;
+}
+.file-label {
+  font-weight: 600;
+  color: #606266;
+}
+.file-name {
+  color: #303133;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cover-uploader-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cover-tag {
+  font-size: 12px;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.field-sub-tip {
+  display: block;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+.advanced-divider {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 8px 0;
+  margin: 12px 0 8px;
+  border-top: 1px dashed #ebeef5;
+}
+.advanced-title {
+  font-size: 13px;
+  color: #606266;
+  font-weight: 500;
+  transition: color 0.2s;
+  &:hover {
+    color: #409eff;
+  }
+}
+.advanced-panel {
+  background: #fafbfc;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  padding: 14px 14px 2px;
+  margin-bottom: 12px;
 }
 </style>
 
