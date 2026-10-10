@@ -5,6 +5,9 @@ set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
 
+# 补充 Node.js 常用路径兜底
+export PATH="/Users/jun10r/.local/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
+
 echo "================================================"
 echo "    MatrixMedia 矩媒 · 一键启动前后端服务"
 echo "================================================"
@@ -27,9 +30,19 @@ if [ "$1" = "--dev" ]; then
   exit 0
 fi
 
-# 检查是否已编译，未编译则自动编译
+# 检查是否需要重新编译（未编译、指定 --rebuild、或源码文件比产物新）
+NEED_BUILD=0
 if [ ! -f "dist/electron/main.js" ] || [ ! -f "dist/electron/index.html" ]; then
-  echo "📦 正在初次编译前端与主进程产物（耗时约十多秒）..."
+  NEED_BUILD=1
+elif [ "$1" = "--rebuild" ]; then
+  NEED_BUILD=1
+elif [ -n "$(find src -type f -newer dist/electron/index.html 2>/dev/null)" ]; then
+  echo "🔄 检测到源码（src/）已更新，自动重新编译最新产物..."
+  NEED_BUILD=1
+fi
+
+if [ "$NEED_BUILD" = "1" ]; then
+  echo "📦 正在编译前端与主进程产物（耗时约十多秒）..."
   npm run build:dir
 fi
 
