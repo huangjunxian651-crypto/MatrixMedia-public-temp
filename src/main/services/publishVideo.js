@@ -120,6 +120,7 @@ async function runSingleFilePublishInner(
     taskId: Date.now() + Math.random(),
     bookName,
     textType: "local",
+    coverPath: v.coverPath || "",
     data: {
       textOtherName: stem,
       title: metadata.title,
@@ -127,6 +128,7 @@ async function runSingleFilePublishInner(
       shortTitle: metadata.shortTitle,
       tags: metadata.tags,
       ...metadata.legacy,
+      coverPath: v.coverPath || "",
       creativeStatement: normalizeCreativeStatement(v.creativeStatement || ""),
     },
     url: cfg.upload,
@@ -155,6 +157,7 @@ async function runSingleFilePublishInner(
     textType: "local",
     pt: v.platform,
     selectedFile,
+    coverPath: v.coverPath || "",
     bt: metadata.title,
     title: metadata.title,
     description: metadata.description,

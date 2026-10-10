@@ -14,6 +14,7 @@ import {
   WAIT_UPLOAD_PROCESSING_MS,
   pollPageUntil,
 } from "./uploadTimeouts.js";
+import { uploadKuaishouCover } from "./platformCover.js";
 
 async function selectKsCreativeStatement(page, data) {
   const value = data.data && data.data.creativeStatement;
@@ -240,6 +241,13 @@ export default async function (page, data, window, event) {
       2000,
       "等待快手视频上传完成超时"
     );
+
+    // 封面上传：视频转码完成后设置自定义封面
+    const coverPath = data.coverPath || (data.data && data.data.coverPath);
+    if (coverPath) {
+      await uploadKuaishouCover(page, coverPath);
+    }
+
     await page.waitForFunction(
       (text) => {
         const bar = document.querySelector("#setting-tours + div");

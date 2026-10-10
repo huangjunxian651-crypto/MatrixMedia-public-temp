@@ -17,6 +17,7 @@ import {
   buildPlatformVideoText,
   normalizeVideoTags,
 } from "../../../shared/videoMetadata.js";
+import { uploadBilibiliCover } from "./platformCover.js";
 
 async function waitForBlblAutoCover(page) {
   await pollPageUntil(
@@ -205,6 +206,11 @@ export default async function (page, data, window, event) {
   }
 
   try {
+    const targetCategory =
+      (data.data && (data.data.blblCategory || data.data.blblTid)) ||
+      data.blblCategory ||
+      "音乐";
+    console.log(`[blbl] 准备选择哔哩哔哩分区: ${targetCategory}`);
     const selector = ".video-human-type .select-container";
     await page.waitForSelector(selector, { timeout: WAIT_SELECTOR_APPEAR_MS });
     const input = await page.$(selector);
@@ -212,8 +218,40 @@ export default async function (page, data, window, event) {
     await page.waitForSelector(".human-type-list", {
       timeout: WAIT_SELECTOR_APPEAR_MS,
     });
-    const input2 = await page.$('.human-type-list div[title="影视"]');
-    await input2.click();
+    const clicked = await page.evaluate((cat) => {
+      const items = document.querySelectorAll(
+        ".human-type-list div[title], .human-type-list li, .human-type-list .type-item, .human-type-list div"
+      );
+      for (const item of items) {
+        const title = (item.getAttribute("title") || item.textContent || "").trim();
+        if (title === cat) {
+          item.click();
+          return true;
+        }
+      }
+      for (const item of items) {
+        const title = (item.getAttribute("title") || item.textContent || "").trim();
+        if (title.includes(cat)) {
+          item.click();
+          return true;
+        }
+      }
+      return false;
+    }, targetCategory);
+    if (!clicked) {
+      console.warn(`[blbl] 未能通过 evaluate 点击分区 ${targetCategory}，尝试直接选择`);
+      const fallback = await page.$(`.human-type-list div[title="${targetCategory}"]`);
+      if (fallback) await fallback.click();
+    } else {
+      console.log(`[blbl] ✅ 已选择分区: ${targetCategory}`);
+    }
+    // 测试截图 3: 已选择分区
+    try {
+      await page.screenshot({
+        path: "/Users/jun10r/Documents/MatrixMedia/playwright-test-shots/step3-category-selected.png",
+      });
+      console.log("[blbl] 📸 已保存步骤3截图: step3-category-selected.png");
+    } catch (_) {}
   } catch (e) {
     console.error("❌ 输入类型失败", e);
   }
@@ -233,15 +271,60 @@ export default async function (page, data, window, event) {
     const selector = ".tag-container .input-instance input";
     await page.waitForSelector(selector, { timeout: WAIT_SELECTOR_APPEAR_MS });
     const input = await page.$(selector);
+
+    // 1. 先彻底清除哔哩哔哩页面上原本已有的默认标签（如系统推荐/遗留标签）
+    console.log("[blbl] 正在清除哔哩哔哩页面上原有的默认标签...");
+    await page.evaluate(() => {
+      const container = document.querySelector(".tag-container") || document;
+      const inputWrap =
+        document.querySelector(".tag-container .input-instance")?.parentElement ||
+        container;
+
+      const candidates = inputWrap.querySelectorAll(
+        '.label-item-v2 [class*="close"], [class*="tag"] [class*="close"], [class*="tag-item"] [class*="close"], [class*="selected"] [class*="close"], .label-item-v2 span, [class*="tag"] span, svg, i'
+      );
+      for (const btn of candidates) {
+        try {
+          const text = (btn.textContent || "").trim();
+          const cls = String(btn.className || "");
+          if (text === "×" || text === "✕" || cls.includes("close") || cls.includes("del")) {
+            if (typeof btn.click === "function") {
+              btn.click();
+            } else if (btn.parentElement && typeof btn.parentElement.click === "function") {
+              btn.parentElement.click();
+            } else {
+              btn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+            }
+          }
+        } catch (_) {}
+      }
+    }).catch(() => {});
+
+    // 2. 聚焦输入框并使用 Backspace 连续按键清空原有标签（稳健清除所有推荐标签）
     await input.focus();
-    // 标签规则是输入一个词后按回车
-    console.log(tag);
+    for (let i = 0; i < 15; i++) {
+      await page.keyboard.press("Backspace");
+      await page.waitForTimeout(50);
+    }
+    await page.waitForTimeout(300);
+
+    // 3. 填入用户在客户端指定的标签
+    console.log("[blbl] 原有标签已清除，正在填入用户指定的标签:", tag);
     for (let i = 0; i < tag.length; i++) {
       await page.keyboard.type(tag[i], { delay: 100 });
       await page.keyboard.press("Enter");
       await page.waitForTimeout(500);
       await input.focus();
     }
+    console.log("[blbl] ✅ 哔哩哔哩标签填写完成");
+
+    // 保存标签填写后的截图
+    try {
+      await page.screenshot({
+        path: "/Users/jun10r/Documents/MatrixMedia/playwright-test-shots/step3-tags-applied.png",
+      });
+      console.log("[blbl] 📸 已保存标签测试截图: step3-tags-applied.png");
+    } catch (_) {}
   } catch (e) {
     console.error("❌ 输入标签失败", e);
   }
@@ -260,7 +343,14 @@ export default async function (page, data, window, event) {
     console.warn("哔哩哔哩视频上传未完成，跳过后续步骤:", e?.message || e);
   }
 
-  await handleBlblCover(page);
+  const coverPath = data.coverPath || (data.data && data.data.coverPath);
+  let customCoverSuccess = false;
+  if (coverPath) {
+    customCoverSuccess = await uploadBilibiliCover(page, coverPath);
+  }
+  if (!customCoverSuccess) {
+    await handleBlblCover(page);
+  }
 
   try {
     await page.waitForTimeout(500);

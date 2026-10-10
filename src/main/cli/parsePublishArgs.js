@@ -1,5 +1,6 @@
 "use strict";
 
+import path from "path";
 import {
   PLATFORM_ALIASES,
   VIDEO_PUBLISH_CANONICAL,
@@ -30,6 +31,8 @@ export function parsePublishArgs(subArgv) {
   const out = {
     platform: null,
     file: null,
+    cover: null,
+    coverPath: null,
     phone: null,
     partition: null,
     title: null,
@@ -102,7 +105,13 @@ export function parsePublishArgs(subArgv) {
       // 视频号剧集快捷参数：等价于 --sph-link-type sph_series --sph-link-value <剧集名称>
       out.sphLinkType = VIDEO_LINK_TYPES.SPH_SERIES;
       out.sphLinkValue = args[++i];
+    } else if (a === "--cover") {
+      out.cover = args[++i];
     }
+  }
+
+  if (out.cover) {
+    out.coverPath = path.resolve(out.cover);
   }
 
   if (!out.platform) {
@@ -317,6 +326,7 @@ export function publishBodyToArgv(body) {
 
   pushPair(["platform", "p"], "-p");
   pushPair(["file", "f"], "-f");
+  pushPair(["cover", "coverPath"], "--cover");
   pushPair(["phone"], "--phone");
   pushPair(["partition"], "--partition");
   pushPair(["title", "t"], "-t");
@@ -384,6 +394,8 @@ export function parsePublishRequest(body) {
 const SHARED_PUBLISH_BODY_KEYS = [
   "file",
   "f",
+  "cover",
+  "coverPath",
   "title",
   "t",
   "description",
@@ -627,6 +639,7 @@ export function publishHelpText() {
 选项:
   -p, --platform <id>   平台：dy|抖音、tt|头条、ks|快手、blbl|哔哩哔哩、bjh|百家号、sph|视频号、xhs|小红书、fqsp|番茄视频
   -f, --file <path>     本地视频文件路径，或 http(s) 远程视频 URL（远程会先下载到临时目录，发布结束后自动删除）
+      --cover <path>    本地封面图片路径（支持哔哩哔哩、快手、抖音等平台上传自定义视频封面）
       --dir <path>          [batch] video directory path; must be paired with --config
       --config <path>       [batch] xlsx 声明文件（列：文件名/标题/简介/标签/视频号短标题/创作声明）
       --cs, --creative-statement <val>  creative statement value for single-file mode.

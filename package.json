@@ -6,6 +6,7 @@
   "license": "GPL-2.0-only",
   "main": "./dist/electron/main.js",
   "scripts": {
+    "start": "node scripts/gen-telemetry-secret.js && electron .",
     "dev": "cross-env TERGET_ENV=development node .electron-vue/dev-runner.js",
     "predev": "node scripts/gen-telemetry-secret.js",
     "dev:download": "node .electron-vue/dev-download-server.js",
@@ -245,6 +246,7 @@
     "node-loader": "^2.0.0",
     "nprogress": "^0.2.0",
     "pinia": "^2.0.33",
+    "playwright-core": "^1.64.0",
     "portfinder": "^1.0.32",
     "postcss": "^8.4.31",
     "postcss-loader": "^7.3.3",

@@ -46,6 +46,42 @@
             @keydown.native.capture="onBqKeydown"
           ></el-select>
         </el-form-item>
+        <el-form-item label="封面图片">
+          <el-button size="mini" @click="selectCoverImage">选择封面图片</el-button>
+          <span v-if="coverPath" class="file-name" style="margin-left: 8px;">{{ coverFileName }}</span>
+          <el-button
+            v-if="coverPath"
+            size="mini"
+            type="text"
+            style="margin-left: 8px; color: #f56c6c;"
+            @click="coverPath = ''"
+          >清除</el-button>
+          <p class="bt2-tip">
+            选填。支持<strong>哔哩哔哩</strong>、<strong>快手</strong>、<strong>抖音</strong>等平台上传自定义视频封面图片（.jpg / .png / .webp）。
+          </p>
+        </el-form-item>
+        <el-form-item label="B站分区">
+          <el-select v-model="form.blblCategory" placeholder="选择分区" style="width: 200px">
+            <el-option label="音乐" value="音乐" />
+            <el-option label="影视" value="影视" />
+            <el-option label="娱乐" value="娱乐" />
+            <el-option label="舞蹈" value="舞蹈" />
+            <el-option label="动画" value="动画" />
+            <el-option label="绘画" value="绘画" />
+            <el-option label="游戏" value="游戏" />
+            <el-option label="知识" value="知识" />
+            <el-option label="科技" value="科技" />
+            <el-option label="生活" value="生活" />
+            <el-option label="美食" value="美食" />
+            <el-option label="动物圈" value="动物圈" />
+            <el-option label="汽车" value="汽车" />
+            <el-option label="运动" value="运动" />
+            <el-option label="时尚" value="时尚" />
+          </el-select>
+          <p class="bt2-tip">
+            仅哔哩哔哩生效，默认<strong>音乐</strong>分区，可切换影视、娱乐等。
+          </p>
+        </el-form-item>
         <el-form-item label="视频号短标题">
           <el-input
             ref="bt2Input"
@@ -630,6 +666,7 @@ export default {
       platformVisible: false,
       attrsVisible: false,
       localFilePath: "",
+      coverPath: "",
       bqTags: [],
       bqComposing: false,
       platformStatements: {},
@@ -654,6 +691,7 @@ export default {
         bt1: "",
         description: "",
         shortTitle: "",
+        blblCategory: "音乐",
       },
       thisShow: false,
       closeWindow: true,
@@ -681,6 +719,9 @@ export default {
   computed: {
     displayFileName() {
       return fileBaseName(this.localFilePath);
+    },
+    coverFileName() {
+      return fileBaseName(this.coverPath);
     },
     batchStatementOptions() {
       return CREATIVE_STATEMENT_OPTIONS;
@@ -819,10 +860,17 @@ export default {
       this._pushBqTags(tokens);
       this._clearBqInput();
     },
+    async selectCoverImage() {
+      const path = await ipcRenderer.invoke("dialog:openImageFile");
+      if (path) {
+        this.coverPath = path;
+      }
+    },
     open(filePath) {
       if (!filePath) return;
       this.localFilePath = filePath;
       const defaultTitle = fileStem(filePath);
+      this.coverPath = "";
       this.bqTags = [];
       this.bqComposing = false;
       this.resetPlatformStatementState();
@@ -832,6 +880,7 @@ export default {
         bt1: "",
         description: "",
         shortTitle: "",
+        blblCategory: "音乐",
       };
       this.thisShow = false;
       this.closeWindow = true;
@@ -850,11 +899,13 @@ export default {
       this.localFilePath = filePath;
       const defaultTitle = fileStem(filePath);
       const form = payload.form || {};
+      this.coverPath = (form.coverPath || payload.coverPath || "").trim();
       this.form = {
         title: (form.title || defaultTitle || "").trim(),
         bt1: (form.bt1 || "").trim(),
         description: (form.description || form.bdText || "").trim(),
         shortTitle: (form.shortTitle || form.bt2Filled || "").trim(),
+        blblCategory: (form.blblCategory || "音乐").trim(),
       };
       this.bqTags = parseBqToTags(form.tags || form.bq);
       this.resetPlatformStatementState();
@@ -941,6 +992,8 @@ export default {
       return {
         bookName,
         textType: "local",
+        coverPath: this.coverPath || "",
+        blblCategory: this.form.blblCategory || "音乐",
         data: {
           textOtherName:
             this.republishTextOtherName || fileStem(this.localFilePath),
@@ -948,6 +1001,8 @@ export default {
           description: metadata.description,
           shortTitle: metadata.shortTitle,
           tags: metadata.tags,
+          coverPath: this.coverPath || "",
+          blblCategory: this.form.blblCategory || "音乐",
           ...metadata.legacy,
           bq: formatBqFromTags(this.bqTags),
         },
@@ -1764,6 +1819,7 @@ export default {
                 creativeStatement: video.data.creativeStatement,
                 publishOptions: video.publishOptions,
                 filePath: this.localFilePath,
+                coverPath: this.coverPath || "",
                 useragent: this.ptConfig[p.pt].useragent,
                 phone: p.phone,
                 partition,
@@ -1796,6 +1852,7 @@ export default {
           ...p,
           taskId,
           ...video,
+          coverPath: this.coverPath || "",
           textOtherName: video.data.textOtherName,
           selectedFile,
           publishMode: effectiveMode.publishMode,
@@ -1841,6 +1898,7 @@ export default {
               creativeStatement: video.data.creativeStatement,
               publishOptions: video.publishOptions,
               filePath: this.localFilePath,
+              coverPath: this.coverPath || "",
               publishAttemptCount: oldAttempt + 1,
               republishCount: oldRepublish + 1,
               publishMode: effectiveMode.publishMode,
@@ -1876,6 +1934,7 @@ export default {
               creativeStatement: video.data.creativeStatement,
               publishOptions: video.publishOptions,
               filePath: this.localFilePath,
+              coverPath: this.coverPath || "",
               useragent: this.ptConfig[p.pt].useragent,
               phone: p.phone,
               partition,

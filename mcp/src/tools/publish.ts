@@ -37,6 +37,11 @@ export const publishVideoTool: Tool = {
         type: "string",
         description: "Absolute path to the video file to upload.",
       },
+      cover: {
+        type: "string",
+        description:
+          "Optional local cover image file path (.jpg, .png, .webp). Supported for Bilibili, Kuaishou, Douyin.",
+      },
       title: {
         type: "string",
         description: "Video title.",
@@ -133,6 +138,7 @@ export async function handlePublishVideo(
 ): Promise<string> {
   const platform = args.platform;
   const file = args.file;
+  const cover = args.cover == null ? "" : String(args.cover).trim();
   const title = args.title;
   const description = args.description;
   const shortTitle = args.shortTitle;
@@ -212,6 +218,7 @@ export async function handlePublishVideo(
     String(platform),
     "-f",
     file,
+    ...(cover ? ["--cover", cover] : []),
     "-t",
     String(title),
     "--partition",

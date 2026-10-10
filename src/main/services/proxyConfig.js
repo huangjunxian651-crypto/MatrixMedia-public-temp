@@ -2,6 +2,7 @@
 
 import { session } from "electron";
 import { changeData } from "../server/utils.js";
+import { ensureLocalBypassProxy } from "./localBypassProxy.js";
 import {
   parseProxyUrl,
   isAccountProxyEnabled,
@@ -104,6 +105,21 @@ export async function applyAccountProxyToSession({
 
   if (!isAccountProxyEnabled(proxy)) {
     partitionProxyAuth.delete(partitionKey);
+    const isKs =
+      String(pt).includes("快手") ||
+      String(pt).toLowerCase() === "ks" ||
+      partitionKey.includes("快手");
+    if (isKs) {
+      const bypassUrl = ensureLocalBypassProxy();
+      if (bypassUrl) {
+        await ses.setProxy({
+          proxyRules: bypassUrl,
+          proxyBypassRules: "<local>",
+        });
+        console.log(`[proxy] 快手平台已启用物理网卡直连分流代理: ${bypassUrl}`);
+        return { applied: true, mode: "proxy", display: bypassUrl };
+      }
+    }
     await ses.setProxy({ mode: "direct" });
     return { applied: false, mode: "direct" };
   }

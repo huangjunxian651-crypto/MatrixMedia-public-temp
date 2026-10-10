@@ -14,6 +14,7 @@ import {
   buildPlatformVideoText,
   normalizeVideoTags,
 } from "../../../shared/videoMetadata.js";
+import { uploadDouyinCover } from "./platformCover.js";
 
 async function selectDyCreativeStatement(page, data) {
   const value = data.data && data.data.creativeStatement;
@@ -232,6 +233,12 @@ export default async function (page, data, window, event) {
       return false;
     });
     if (!saved) throw new Error("未找到保存权限-不允许");
+
+    // 封面上传：视频转码完成后设置自定义封面
+    const coverPath = data.coverPath || (data.data && data.data.coverPath);
+    if (coverPath) {
+      await uploadDouyinCover(page, coverPath);
+    }
 
     // 自主声明入口在视频转码完成后才出现，必须在点击发布前完成
     await selectDyCreativeStatementWithRetry(page, data);
