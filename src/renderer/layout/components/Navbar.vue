@@ -7,13 +7,23 @@
         mode="horizontal"
         @select="selectFn"
       >
-        <el-menu-item index="/video-manager">视频发布管理</el-menu-item>
-        <el-menu-item index="/data-stats">账号数据统计</el-menu-item>
-        <el-menu-item :index="mediaMenuItemIndex">账号管理</el-menu-item>
+        <el-menu-item index="/video-manager">
+          <svg-icon icon-class="video-publish" class="nav-icon" />
+          <span>视频发布管理</span>
+        </el-menu-item>
+        <el-menu-item index="/data-stats">
+          <svg-icon icon-class="chart-stats" class="nav-icon" />
+          <span>账号数据统计</span>
+        </el-menu-item>
+        <el-menu-item :index="mediaMenuItemIndex">
+          <svg-icon icon-class="account-group" class="nav-icon" />
+          <span>账号管理</span>
+        </el-menu-item>
       </el-menu>
       <div class="account-actions">
-        <el-button type="primary" size="small" @click="showDialog = true">
-          添加媒体账号
+        <el-button type="primary" size="small" class="add-account-btn" @click="showDialog = true">
+          <svg-icon icon-class="add-plus" class="btn-icon" />
+          <span>添加媒体账号</span>
         </el-button>
       </div>
     </div>
@@ -328,11 +338,46 @@ export default {
     }
   }
 
+  .nav-icon {
+    font-size: 16px;
+    margin-right: 6px;
+    vertical-align: -2px;
+  }
+
   .account-actions {
     display: flex;
     align-items: center;
     margin-left: 16px;
     flex-shrink: 0;
+
+    .add-account-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 15px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+      .btn-icon {
+        font-size: 14px;
+        margin-right: 5px;
+      }
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.38);
+        background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+      }
+    }
   }
 }
 

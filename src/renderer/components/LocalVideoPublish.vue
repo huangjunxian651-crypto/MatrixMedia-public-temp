@@ -10,9 +10,13 @@
       @close="handleMetaClose"
     >
       <div class="selected-file-badge">
-        <i class="el-icon-video-camera file-icon"></i>
-        <span class="file-label">已选视频：</span>
-        <span class="file-name" :title="localFilePath">{{ displayFileName }}</span>
+        <div class="video-icon-badge">
+          <svg-icon icon-class="video-publish" class="video-svg-icon" />
+        </div>
+        <div class="video-meta-content">
+          <span class="file-label">已选发布源视频</span>
+          <span class="file-name" :title="localFilePath">{{ displayFileName }}</span>
+        </div>
       </div>
       <el-form label-width="88px" class="meta-form">
         <el-form-item label="视频标题" required>
@@ -208,7 +212,7 @@
           </template>
           <template v-else>
             <div class="platform-leaf-main">
-              <span class="platform-leaf-name">{{ data.pt }}</span>
+              <span class="platform-leaf-name platform-badge" :class="getPlatformBadgeClass(data.pt)">{{ data.pt }}</span>
               <span
                 v-if="data.proxyDisplay"
                 class="platform-leaf-proxy"
@@ -768,6 +772,17 @@ export default {
     }
   },
   methods: {
+    getPlatformBadgeClass(pt) {
+      if (!pt) return "badge-default";
+      if (pt.includes("抖音")) return "badge-douyin";
+      if (pt.includes("快手")) return "badge-kuaishou";
+      if (pt.includes("哔哩") || pt.includes("B站") || pt.includes("bilibili")) return "badge-bilibili";
+      if (pt.includes("视频号") || pt.includes("微信")) return "badge-sph";
+      if (pt.includes("小红书")) return "badge-xhs";
+      if (pt.includes("头条")) return "badge-tt";
+      if (pt.includes("百家")) return "badge-bjh";
+      return "badge-default";
+    },
     platformSupportsCreativeStatement,
     platformSupportsVideoLink,
     /** 把字符串按 # / 空格 / 逗号 / 分号 / 顿号 切成多个标签 */
@@ -2511,28 +2526,107 @@ export default {
 .selected-file-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: #f4f6f8;
-  border: 1px solid #e4e7ed;
-  border-radius: 6px;
-  padding: 8px 14px;
-  margin-bottom: 18px;
-  font-size: 13px;
-  color: #303133;
+  gap: 12px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+
+  .video-icon-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .video-svg-icon {
+      font-size: 20px;
+      color: #3b82f6;
+    }
+  }
+
+  .video-meta-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+
+    .file-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .file-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
 }
-.file-icon {
-  color: #409eff;
-  font-size: 16px;
-}
-.file-label {
+
+.platform-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  font-size: 11px;
   font-weight: 600;
-  color: #606266;
+  border-radius: 4px;
+  line-height: 1.35;
+  margin-right: 6px;
 }
-.file-name {
-  color: #303133;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+
+.badge-douyin {
+  background: #18181b;
+  color: #38bdf8;
+  border: 1px solid #27272a;
+}
+.badge-kuaishou {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}
+.badge-bilibili {
+  background: #f0f9ff;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+}
+.badge-sph {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+.badge-xhs {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+.badge-tt {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #ffe4e6;
+}
+.badge-bjh {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+.badge-default {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
 }
 .cover-uploader-row {
   display: flex;

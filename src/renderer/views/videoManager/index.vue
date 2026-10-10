@@ -10,30 +10,40 @@
         <div class="toolbar-left">
           <el-button
             type="primary"
-            icon="el-icon-video-camera"
+            class="action-btn-primary"
             @click="selectVideoFile"
-          >选择视频发布</el-button>
+          >
+            <svg-icon icon-class="video-publish" class="btn-svg-icon" />
+            <span>选择视频发布</span>
+          </el-button>
           <el-button
-            type="primary"
             plain
-            icon="el-icon-folder-opened"
+            class="action-btn-secondary"
             @click="openDirectoryPublish"
-          >目录发布</el-button>
+          >
+            <svg-icon icon-class="folder-batch" class="btn-svg-icon" />
+            <span>目录发布</span>
+          </el-button>
           <el-button
-            type="success"
             plain
-            icon="el-icon-document"
+            class="action-btn-article"
             @click="openArticlePublish"
-          >发布文章</el-button>
+          >
+            <svg-icon icon-class="article-edit" class="btn-svg-icon" />
+            <span>发布文章</span>
+          </el-button>
         </div>
         <div class="toolbar-right">
           <el-button
-            icon="el-icon-download"
             size="small"
             plain
+            class="action-btn-export"
             :loading="exportingHistory"
             @click="exportHistory"
-          >导出记录</el-button>
+          >
+            <svg-icon icon-class="download-export" class="btn-svg-icon" />
+            <span>导出记录</span>
+          </el-button>
         </div>
       </div>
     </div>
@@ -42,7 +52,18 @@
     <LocalArticlePublish ref="articlePublishRef" @published="loadRecords" />
 
     <div class="info-box">
-      <template v-for="(item, index) in dataList">
+      <div v-if="!hasRecords" class="empty-records-card">
+        <div class="empty-icon-wrap">
+          <svg-icon icon-class="video-publish" class="empty-svg-icon" />
+        </div>
+        <h3 class="empty-title">暂无发布记录</h3>
+        <p class="empty-desc">选择视频并勾选账号即可开启一键多平台自媒体矩阵分发</p>
+        <el-button type="primary" size="small" class="empty-action-btn" @click="selectVideoFile">
+          <svg-icon icon-class="video-publish" class="btn-svg-icon" />
+          <span>立即选择视频发布</span>
+        </el-button>
+      </div>
+      <template v-else v-for="(item, index) in dataList">
         <el-card
           v-if="item && item.length"
           :key="index"
@@ -63,7 +84,7 @@
                   :key="si"
                   class="progress-row"
                 >
-                  <span class="pt-name">{{ sub.pt }}</span>
+                  <span class="platform-badge" :class="getPlatformBadgeClass(sub.pt)">{{ sub.pt }}</span>
                   <div class="progress-detail">
                     <span class="progress-count"
                       >重发 {{ normalizeCount(sub.republishCount) }} 次</span
@@ -208,6 +229,16 @@ export default {
     LocalVideoPublish,
     LocalArticlePublish,
   },
+  computed: {
+    hasRecords() {
+      return (
+        this.dataList &&
+        Object.keys(this.dataList).some(
+          (k) => Array.isArray(this.dataList[k]) && this.dataList[k].length > 0
+        )
+      );
+    },
+  },
   data() {
     return {
       // 抖音获取发布状态的class名称
@@ -247,6 +278,17 @@ export default {
     this.loadRecords();
   },
   methods: {
+    getPlatformBadgeClass(pt) {
+      if (!pt) return "badge-default";
+      if (pt.includes("抖音")) return "badge-douyin";
+      if (pt.includes("快手")) return "badge-kuaishou";
+      if (pt.includes("哔哩") || pt.includes("B站") || pt.includes("bilibili")) return "badge-bilibili";
+      if (pt.includes("视频号") || pt.includes("微信")) return "badge-sph";
+      if (pt.includes("小红书")) return "badge-xhs";
+      if (pt.includes("头条")) return "badge-tt";
+      if (pt.includes("百家")) return "badge-bjh";
+      return "badge-default";
+    },
     async exportHistory() {
       if (this.exportingHistory) return;
       const { csv, recordCount } = buildPublishHistoryCsv(this.dataList);
@@ -963,11 +1005,12 @@ export default {
 @import "@/styles/variables.scss";
 
 .toolbar {
-  margin-bottom: 16px;
-  padding: 16px 20px;
-  background: $cardBg;
-  border: 1px solid $borderColor;
-  border-radius: 4px;
+  margin-bottom: 20px;
+  padding: 18px 22px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
 }
 
 .toolbar-inner {
@@ -975,7 +1018,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
 }
 
 .toolbar-left,
@@ -983,7 +1026,198 @@ export default {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
+}
+
+.btn-svg-icon {
+  font-size: 15px;
+  margin-right: 6px;
+  vertical-align: -2px;
+}
+
+.action-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .btn-svg-icon {
+    font-size: 16px;
+  }
+
+  &:hover {
+    transform: translateY(-1.5px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.38);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.action-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #3b82f6;
+    color: #2563eb;
+    background: #f8fafc;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.action-btn-article {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #16a34a;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.06);
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #86efac;
+    color: #15803d;
+    background: #dcfce7;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(22, 163, 74, 0.12);
+  }
+}
+
+.action-btn-export {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  transition: all 0.2s;
+
+  &:hover {
+    color: #0f172a;
+    border-color: #cbd5e1;
+    background: #ffffff;
+  }
+}
+
+.empty-records-card {
+  padding: 48px 24px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  margin: 10px 0 24px;
+
+  .empty-icon-wrap {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 16px;
+    background: #eff6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .empty-svg-icon {
+      font-size: 32px;
+      color: #3b82f6;
+    }
+  }
+
+  .empty-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 8px;
+  }
+
+  .empty-desc {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 20px;
+  }
+
+  .empty-action-btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 8px 18px;
+  }
+}
+
+.platform-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  line-height: 1.4;
+  margin-right: 8px;
+}
+
+.badge-douyin {
+  background: #18181b;
+  color: #38bdf8;
+  border: 1px solid #27272a;
+}
+.badge-kuaishou {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}
+.badge-bilibili {
+  background: #f0f9ff;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+}
+.badge-sph {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+.badge-xhs {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+.badge-tt {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #ffe4e6;
+}
+.badge-bjh {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+.badge-default {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
 }
 
 .toolbar-label {
