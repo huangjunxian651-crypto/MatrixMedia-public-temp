@@ -34,16 +34,6 @@
             :loading="exportingHistory"
             @click="exportHistory"
           >导出记录</el-button>
-          <el-dropdown trigger="click" @command="handleHelpCommand">
-            <el-button size="small" plain icon="el-icon-more">
-              更多 <i class="el-icon-arrow-down el-icon--right"></i>
-            </el-button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="feedback" icon="el-icon-chat-dot-round">问题反馈</el-dropdown-item>
-              <el-dropdown-item command="qq" icon="el-icon-user">交流QQ群</el-dropdown-item>
-              <el-dropdown-item command="star" icon="el-icon-star-off">GitHub Star</el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
         </div>
       </div>
     </div>
@@ -870,18 +860,6 @@ export default {
       }
       this.loadRecords();
     },
-    openFeedback() {
-      window.open("https://wj.qq.com/s2/26701780/6de3/", "_blank");
-    },
-    openQQGroup() {
-      window.open(
-        "https://qm.qq.com/cgi-bin/qm/qr?k=NLsaKNd7gqbOeW_JXNg7bRreFtcLKXmp&jump_from=webapi&authKey=Nd/DrSrJWaH+Nip9gEIGse4LdHWpLkp8bVfcKwinOk4hI8XfNTDvGf/smQgZvWHT",
-        "_blank"
-      );
-    },
-    openGitHubStar() {
-      window.open("https://github.com/hanliang97/MatrixMedia", "_blank");
-    },
     async selectVideoFile() {
       const path = await ipcRenderer.invoke("dialog:openVideoFile");
       if (path) {
@@ -976,12 +954,6 @@ export default {
           this.$delete(this.dataList, dateKey);
         }
       });
-    },
-
-    handleHelpCommand(command) {
-      if (command === "feedback") this.openFeedback();
-      else if (command === "qq") this.openQQGroup();
-      else if (command === "star") this.openGitHubStar();
     },
   },
 };

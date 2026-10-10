@@ -3,7 +3,7 @@ import Layout from "@/layout";
 export const constantRouterMap = [
   {
     path: "/",
-    redirect: "/data-stats",
+    redirect: "/video-manager",
     hidden: true,
   },
   {
@@ -24,20 +24,7 @@ export const constantRouterMap = [
       },
     ],
   },
-  {
-    path: "/project-detail",
-    component: Layout,
-    redirect: "/project-detail",
-    hidden: true,
-    children: [
-      {
-        path: "",
-        name: "项目详情",
-        component: () => import("@/views/projectDetail/index"),
-        meta: { noSlide: true, title: "项目详情" },
-      },
-    ],
-  },
+
   {
     path: "/video-manager",
     component: Layout,
