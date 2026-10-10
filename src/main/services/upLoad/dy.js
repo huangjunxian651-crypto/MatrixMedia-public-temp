@@ -143,28 +143,39 @@ export default async function (page, data, window, event) {
   }
   try {
     const text = buildPlatformVideoText("抖音", data.data);
-    await page.waitForSelector(".semi-input", {
+
+    // 1. 抖音不用输入主标题：若存在主标题输入框则清空，不输入主标题
+    try {
+      const input = await page.$(".semi-input");
+      if (input) {
+        await input.click({ clickCount: 3 });
+        await page.keyboard.press("Backspace");
+      }
+    } catch (_) {}
+
+    // 2. 将程序的标题输入到抖音副标题（作品描述编辑区）
+    const subtitleParts = [];
+    if (text.title) subtitleParts.push(text.title);
+    if (text.description) subtitleParts.push(text.description);
+    const dySubtitle = subtitleParts.join(" ");
+
+    await page.waitForSelector(".zone-container.editor-kit-container", {
       timeout: WAIT_SELECTOR_APPEAR_MS,
     });
-    // 获取元素句柄
-    const input = await page.$(".semi-input");
-    // 点击并清空内容
-    await input.click({ clickCount: 3 }); // 三击全选
-    await page.keyboard.press("Backspace"); // 删除内容
-    await page.type(".semi-input", text.title, { delay: 50 });
-
     const input2 = await page.$(".zone-container.editor-kit-container");
-    await input2.click(); // 三击全选
-    if (text.description) {
-      await page.keyboard.type(text.description, { delay: 50 });
-    }
-    // 抖音话题只有遇到空格/回车才会把当前 #xxx 转成话题胶囊；
-    // bq 末尾没有分隔符会导致最后一个标签没被识别，这里补一次空格触发。
-    if (normalizeVideoTags(data.data.tags).length) {
-      await page.keyboard.press("Space");
+    if (input2) {
+      await input2.click();
+      if (dySubtitle) {
+        await page.keyboard.type(dySubtitle, { delay: 50 });
+      }
+      // 抖音话题只有遇到空格/回车才会把当前 #xxx 转成话题胶囊；
+      // bq 末尾没有分隔符会导致最后一个标签没被识别，这里补一次空格触发。
+      if (normalizeVideoTags(data.data.tags).length) {
+        await page.keyboard.press("Space");
+      }
     }
   } catch (e) {
-    console.error("❌ 输入标题失败", e);
+    console.error("❌ 输入副标题失败", e);
   }
 
   try {

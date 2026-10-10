@@ -67,59 +67,50 @@
             @keydown.native.capture="onBqKeydown"
           ></el-select>
         </el-form-item>
-
-        <div class="advanced-divider" @click="showAdvancedOptions = !showAdvancedOptions">
-          <span class="advanced-title">
-            <i :class="showAdvancedOptions ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"></i>
-            平台高级选项（B站分区、视频号短标题、定时发布）
-          </span>
-        </div>
-        <div v-show="showAdvancedOptions" class="advanced-panel">
-          <el-form-item label="B站分区">
-            <el-select v-model="form.blblCategory" placeholder="选择分区" style="width: 200px">
-              <el-option label="音乐" value="音乐" />
-              <el-option label="影视" value="影视" />
-              <el-option label="娱乐" value="娱乐" />
-              <el-option label="舞蹈" value="舞蹈" />
-              <el-option label="动画" value="动画" />
-              <el-option label="绘画" value="绘画" />
-              <el-option label="游戏" value="游戏" />
-              <el-option label="知识" value="知识" />
-              <el-option label="科技" value="科技" />
-              <el-option label="生活" value="生活" />
-              <el-option label="美食" value="美食" />
-              <el-option label="动物圈" value="动物圈" />
-              <el-option label="汽车" value="汽车" />
-              <el-option label="运动" value="运动" />
-              <el-option label="时尚" value="时尚" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="短标题">
-            <el-input
-              ref="bt2Input"
-              v-model="form.shortTitle"
-              placeholder="仅微信视频号使用，选填，建议 6～16 字"
-              @input="onBt2Input"
-              @keydown.native.capture="onBt2Keydown"
-            />
-          </el-form-item>
-          <el-form-item label="定时发布">
-            <el-switch
-              v-model="scheduledPublish"
-              active-text="定时"
-              inactive-text="立即"
-            />
-          </el-form-item>
-          <el-form-item v-if="scheduledPublish" label="发布时间">
-            <el-date-picker
-              v-model="publishAt"
-              type="datetime"
-              value-format="yyyy-MM-dd HH:mm:ss"
-              placeholder="选择发布时间"
-              style="width: 240px"
-            />
-          </el-form-item>
-        </div>
+        <el-form-item label="B站分区">
+          <el-select v-model="form.blblCategory" placeholder="选择分区" style="width: 200px">
+            <el-option label="音乐" value="音乐" />
+            <el-option label="影视" value="影视" />
+            <el-option label="娱乐" value="娱乐" />
+            <el-option label="舞蹈" value="舞蹈" />
+            <el-option label="动画" value="动画" />
+            <el-option label="绘画" value="绘画" />
+            <el-option label="游戏" value="游戏" />
+            <el-option label="知识" value="知识" />
+            <el-option label="科技" value="科技" />
+            <el-option label="生活" value="生活" />
+            <el-option label="美食" value="美食" />
+            <el-option label="动物圈" value="动物圈" />
+            <el-option label="汽车" value="汽车" />
+            <el-option label="运动" value="运动" />
+            <el-option label="时尚" value="时尚" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="短标题">
+          <el-input
+            ref="bt2Input"
+            v-model="form.shortTitle"
+            placeholder="仅微信视频号使用，选填，建议 6～16 字"
+            @input="onBt2Input"
+            @keydown.native.capture="onBt2Keydown"
+          />
+        </el-form-item>
+        <el-form-item label="定时发布">
+          <el-switch
+            v-model="scheduledPublish"
+            active-text="定时"
+            inactive-text="立即"
+          />
+        </el-form-item>
+        <el-form-item v-if="scheduledPublish" label="发布时间">
+          <el-date-picker
+            v-model="publishAt"
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            placeholder="选择发布时间"
+            style="width: 240px"
+          />
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="metaVisible = false">取消</el-button>
@@ -691,7 +682,6 @@ export default {
       checkAllPlatforms: false,
       checkAllIndeterminate: false,
       batchCreativeStatement: CREATIVE_STATEMENT_DEFAULT,
-      showAdvancedOptions: false,
       form: {
         title: "",
         bt1: "",
@@ -888,7 +878,6 @@ export default {
         shortTitle: "",
         blblCategory: "音乐",
       };
-      this.showAdvancedOptions = false;
       this.thisShow = false;
       this.closeWindow = true;
       this.scheduledPublish = false;
